@@ -1,9 +1,11 @@
+import "../style.css"
+
 import { Box, Calendar, ClipboardList, Cog, Paperclip } from "lucide-react"
 import React, { useState } from "react"
 
-import MainButton from "./button"
+import { logRandomMessage } from "~lib/alarm"
 
-import "../style.css"
+import MainButton from "./button"
 
 type SectionKey =
   | "assets"
@@ -76,8 +78,27 @@ const SECTIONS: Section[] = [
 export default function Popup() {
   const [active, setActive] = useState<SectionKey | null>(null)
 
+  const openOptions = () => {
+    try {
+      chrome.runtime?.openOptionsPage?.()
+    } catch (e) {
+      console.warn("openOptionsPage not available", e)
+    }
+  }
+
   return (
-    <div className="w-[360px] min-h-[440px] bg-slate-950 text-slate-100 p-3">
+    <div className="w-[360px] min-h-[480px] bg-slate-950 text-slate-100 p-3">
+      {/* Header bar with quick Options link */}
+      <div className="mb-3 flex items-center justify-between">
+        <div className="h-1.5 flex-1 rounded-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-cyan-500" />
+        <button
+          onClick={openOptions}
+          className="ml-3 text-[11px] underline decoration-white/40 underline-offset-2 hover:no-underline text-slate-300"
+          title="Open extension options">
+          Options
+        </button>
+      </div>
+
       <div className="space-y-2">
         {SECTIONS.map((s) => (
           <div
@@ -93,15 +114,19 @@ export default function Popup() {
               }
             />
 
-            {/* secondary buttons: show only when active */}
+            {/* secondary buttons: visible only when active */}
             {active === s.key && (
-              <div className="grid grid-cols-2 gap-2 p-3 pt-0">
+              <div className="grid grid-cols-2 gap-2 p-3 pt-2 mt-1 border-t border-white/10">
                 {s.actions.map((a) => (
                   <button
                     key={a.key}
                     className="rounded-xl border border-white/10 px-3 py-2 text-sm hover:border-white/20 hover:bg-white/5"
                     onClick={() => {
-                      /* wire later */
+                      logRandomMessage({
+                        section: s.key,
+                        action: a.key,
+                        label: a.label
+                      })
                     }}>
                     {a.label}
                   </button>
