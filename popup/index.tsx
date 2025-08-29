@@ -3,7 +3,8 @@ import "../style.css"
 import { Box, Calendar, ClipboardList, Cog, Paperclip } from "lucide-react"
 import React, { useState } from "react"
 
-import { logRandomMessage } from "~lib/alarm"
+import { runAction } from "~popup/actions/registry"
+import { toActionId, type ActionKey } from "~types/actions"
 
 import MainButton from "./button"
 
@@ -121,12 +122,16 @@ export default function Popup() {
                   <button
                     key={a.key}
                     className="rounded-xl border border-white/10 px-3 py-2 text-sm hover:border-white/20 hover:bg-white/5"
-                    onClick={() => {
-                      logRandomMessage({
-                        section: s.key,
-                        action: a.key,
-                        label: a.label
+                    onClick={async () => {
+                      // active tab is handy for content-script messaging later:
+                      const [tab] = await chrome.tabs.query({
+                        active: true,
+                        currentWindow: true
                       })
+                      await runAction(
+                        toActionId(s.key as SectionKey, a.key as ActionKey),
+                        { tabId: tab?.id }
+                      )
                     }}>
                     {a.label}
                   </button>
